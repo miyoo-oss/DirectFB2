@@ -213,7 +213,7 @@ vt_init_switching()
      }
 
      if (vt->switching) {
-          struct vt_mode   vtm;
+          struct vt_mode   vtm = { 0 };
           struct sigaction sig_tty;
 
           memset( &sig_tty, 0, sizeof(sig_tty) );
