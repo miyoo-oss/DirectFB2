@@ -27,6 +27,95 @@ D_DEBUG_DOMAIN( DRMKMS_Screen, "DRMKMS/Screen", "DRM/KMS Screen" );
 
 extern const DisplayLayerFuncs drmkmsPrimaryLayerFuncs;
 
+static void
+drmkmsGetProp( DRMKMSData       *drmkms,
+               uint32_t          prop_id,
+               uint64_t          prop_value,
+               void            (*callback)(drmModePropertyPtr prop, uint64_t value, void *data),
+               void             *data )
+{
+    drmModePropertyPtr prop;
+
+    prop = drmModeGetProperty(drmkms->fd, prop_id);
+
+    callback(prop, prop_value, data);
+
+    drmModeFreeProperty(prop);
+}
+
+static void
+drmkmsForEachConnectorProp( DRMKMSData       *drmkms,
+                            drmModeConnector *connector,
+                            void            (*callback)(drmModePropertyPtr prop, uint64_t value, void *data),
+                            void             *data )
+{
+     drmModeObjectPropertiesPtr props;
+     int i;
+
+     props = drmModeObjectGetProperties(drmkms->fd, connector->connector_id,
+             DRM_MODE_OBJECT_CONNECTOR);
+
+     if (!props)
+          return;
+
+     for (i = 0; i < props->count_props; i++)
+          drmkmsGetProp(drmkms, props->props[i], props->prop_values[i], callback, data);
+
+     drmModeFreeObjectProperties(props);
+};
+
+static void
+drmkmsGetPanelOrientationCallback( drmModePropertyPtr  prop,
+                                   uint64_t            value,
+                                   void               *data )
+{
+     int i;
+     int *result = (int *) data;
+     int rot;
+     const int max_enum = 3;
+     const char *orientations[max_enum + 1];
+     const char *orientation;
+
+     if(strcmp(prop->name, "panel orientation") == 0) {
+          if (!drm_property_type_is(prop, DRM_MODE_PROP_ENUM)) {
+              D_INFO( "DRMKMS/Screen: panel orientation property is not enum!\n" );
+              return;
+          }
+
+          for (i = 0; i < prop->count_enums; i++) {
+              /* The maximum enum value should be 3,.. */
+              if (prop->enums[i].value > max_enum){
+                  D_INFO( "DRMKMS/Screen: orientation enum out of expected range\n" );
+                  return;
+              }
+              orientations[(int) prop->enums[i].value] = prop->enums[i].name;
+          }
+
+          orientation = orientations[(int) value];
+          if (strcmp(orientation, "Upside Down") == 0) {
+               rot = 180;
+          }
+
+          D_INFO( "DRMKMS/Screen: configured orientation: \"%s\", rotation %d\n",
+                  orientation, rot);
+
+          if(result)
+               *result = rot;
+     }
+}
+
+static int
+drmkmsConnectorGetPanelOrientation( DRMKMSData       *drmkms,
+                                    drmModeConnector *connector )
+{
+    int rotation = 0;
+
+    drmkmsForEachConnectorProp(drmkms, connector,
+             drmkmsGetPanelOrientationCallback, &rotation);
+
+    return rotation;
+}
+
 static DFBResult
 drmkmsInitScreen( CoreScreen           *screen,
                   void                 *driver_data,
@@ -589,6 +678,18 @@ drmkmsGetScreenSize( CoreScreen *screen,
      return DFB_OK;
 }
 
+static DFBResult
+drmkmsGetScreenRotation( CoreScreen *screen,
+                         void       *driver_data,
+                         int        *rotation )
+{
+     DRMKMSData       *drmkms = driver_data;
+
+     *rotation = drmkmsConnectorGetPanelOrientation(drmkms, drmkms->connector[0]);
+
+     return DFB_OK;
+}
+
 const ScreenFuncs drmkmsScreenFuncs = {
      .InitScreen        = drmkmsInitScreen,
      .InitMixer         = drmkmsInitMixer,
@@ -601,4 +702,5 @@ const ScreenFuncs drmkmsScreenFuncs = {
      .TestOutputConfig  = drmkmsTestOutputConfig,
      .SetOutputConfig   = drmkmsSetOutputConfig,
      .GetScreenSize     = drmkmsGetScreenSize,
+     .GetScreenRotation = drmkmsGetScreenRotation,
 };
