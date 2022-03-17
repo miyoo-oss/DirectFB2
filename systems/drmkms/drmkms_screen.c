@@ -96,8 +96,8 @@ drmkmsGetPanelOrientationCallback( drmModePropertyPtr  prop,
                rot = 180;
           }
 
-          D_INFO( "DRMKMS/Screen: configured orientation: \"%s\", rotation %d\n",
-                  orientation, rot);
+          D_INFO( "DRMKMS/Screen: configured orientation: \"%s\" (%d), rotation %d\n",
+                  orientation, (int) value, rot);
 
           if(result)
                *result = rot;
