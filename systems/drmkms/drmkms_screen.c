@@ -71,29 +71,32 @@ drmkmsGetPanelOrientationCallback( drmModePropertyPtr  prop,
 {
      int i;
      int *result = (int *) data;
-     int rot;
+     int rot = 0;
      const int max_enum = 3;
      const char *orientations[max_enum + 1];
      const char *orientation;
 
      if(strcmp(prop->name, "panel orientation") == 0) {
           if (!drm_property_type_is(prop, DRM_MODE_PROP_ENUM)) {
-              D_INFO( "DRMKMS/Screen: panel orientation property is not enum!\n" );
-              return;
+               D_INFO( "DRMKMS/Screen: panel orientation property is not enum!\n" );
+               return;
           }
 
           for (i = 0; i < prop->count_enums; i++) {
-              /* The maximum enum value should be 3,.. */
-              if (prop->enums[i].value > max_enum){
-                  D_INFO( "DRMKMS/Screen: orientation enum out of expected range\n" );
-                  return;
-              }
-              orientations[(int) prop->enums[i].value] = prop->enums[i].name;
+               /* The maximum enum value should be 3,.. */
+               if (prop->enums[i].value > max_enum){
+                    D_INFO( "DRMKMS/Screen: orientation enum out of expected range\n" );
+                    return;
+               }
+               orientations[(int) prop->enums[i].value] = prop->enums[i].name;
           }
 
-          orientation = orientations[(int) value];
-          if (strcmp(orientation, "Upside Down") == 0) {
-               rot = 180;
+          if ((int) value == -1)
+               orientation = "unconfigured\n";
+          else {
+               orientation = orientations[(int) value];
+               if (strcmp(orientation, "Upside Down") == 0)
+                   rot = 180;
           }
 
           D_INFO( "DRMKMS/Screen: configured orientation: \"%s\" (%d), rotation %d\n",
