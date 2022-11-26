@@ -35,3 +35,5 @@ library('directfb_drmkms',
         dependencies: [directfb_dep, drmkms_dep],
         install: true,
         install_dir: join_paths(moduledir, 'systems'))
+
+
