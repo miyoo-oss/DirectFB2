@@ -30,8 +30,6 @@ drmkms_sources = [
   'drmkms_vt.c'
 ]
 
-install_headers('drmkms_system.h', subdir: 'directfb-internal/systems/drmkms')
-
 library('directfb_drmkms',
         drmkms_sources,
         dependencies: [directfb_dep, drmkms_dep],
