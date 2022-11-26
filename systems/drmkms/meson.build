@@ -30,16 +30,12 @@ drmkms_sources = [
   'drmkms_vt.c'
 ]
 
+install_headers('drmkms_system.h', subdir: 'directfb-internal/systems/drmkms')
+
 library('directfb_drmkms',
         drmkms_sources,
         dependencies: [directfb_dep, drmkms_dep],
         install: true,
         install_dir: join_paths(moduledir, 'systems'))
 
-install_headers('drmkms_system.h', subdir: 'directfb-drmkms')
 
-pkgconfig.generate(filebase: 'directfb-drmkms',
-                   name: 'DirectFB-drmkms',
-                   description: 'DirectFB drmkms system',
-                   requires: 'directfb',
-                   subdirs: 'directfb-drmkms')
