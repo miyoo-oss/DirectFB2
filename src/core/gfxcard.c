@@ -1201,7 +1201,9 @@ dfb_gfxcard_state_check_acquire( CardState           *state,
                state->checked &= ~DFXL_ALL_DRAW;
           }
 
-          if (state->source->config.size.w < card->limits.dst_min.w ||
+          /* dgp: why would state->source be null? */
+          if (!state->source ||
+              state->source->config.size.w < card->limits.dst_min.w ||
               state->source->config.size.h < card->limits.dst_min.h ||
               state->source->config.size.w > card->limits.dst_max.w ||
               state->source->config.size.h > card->limits.dst_max.h) {
