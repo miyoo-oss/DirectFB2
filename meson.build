@@ -62,7 +62,7 @@ endif
 
 if host_machine.cpu_family() == 'arm' or host_machine.cpu_family() == 'aarch64'
   if get_option('neon')
-    config_h.set('USE_NEON', 1, description: 'Define to 1 if you are compiling NEON assembly support.')
+    config_conf.set('USE_NEON', 1, description: 'Define to 1 if you are compiling NEON assembly support.')
   endif
 endif
 
