@@ -279,7 +279,7 @@ system_initialize( CoreDFB  *core,
      const char            *value;
      drmModePlane          *plane;
      VideoMode             *prev_mode       = NULL;
-     DFBSurfacePixelFormat  fallback_format = DSPF_UNKNOWN;
+     DFBSurfacePixelFormat  fallback_format = DSPF_ARGB;
 
      D_DEBUG_AT( DRMKMS_System, "%s()\n", __FUNCTION__ );
 
